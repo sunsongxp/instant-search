@@ -1,6 +1,9 @@
+import mmseg
+mmseg.Dictionary.load_dictionaries()
 # TODO: rename set_to_build
 # set_to_build needs to be in lexicographic order
-def build_set(redis_instance, name_space, set_to_build):
+# name_space and redis_key are supposed to be functioning as the same.
+def build_set(redis_instance, name_space, set_to_build=[]):
     for i in set_to_build:
         for j in range(len(i)):
             redis_instance.zadd(name_space, 0, i[0:j+1])
@@ -31,3 +34,17 @@ def complete(redis_instance, redis_key, prefix, count):
                 results.append(entry[:-1].decode("utf-8")) # All info stored in redis are utf-8
 
     return results
+
+# entries = [(1, "Text"), (2, "Text")]
+# two sets to build: keywordset=set(), which have all individual words, keyword_index(with name of word) are sets of members of ids of entries
+# or topics containing this word, eg: keyword:index:abacus = set([1, 4, 7]).
+def build_index(redis_instance, redis_key, entries=[], keyword_set_name="keywordset", keyword_index="keyword:index"):
+    all_words = []
+    for entry_id, entry in entries:
+        segmented_entry = mmseg.Algorithm(entry)
+        for word in segmented_entry:
+            all_words.append(word.text)
+            redis_instance.sadd(keyword_set_name, word)
+            redis_instance.sadd(keyword_index+':'+word.text, entry_id)
+
+    build_set(redis_instance, redis_key, all_words)

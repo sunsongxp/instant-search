@@ -1,1 +1,7 @@
+Required Software:
+
+1. redis
+2. mongodb
+    * sudo apt-get install mongodb
+
 https://github.com/huacnlee/redis-search
