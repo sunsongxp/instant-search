@@ -1,3 +1,4 @@
 hiredis
 redis
 mongoengine
+pymmseg
