@@ -48,3 +48,18 @@ def build_index(redis_instance, redis_key, entries=[], keyword_set_name="keyword
             redis_instance.sadd(keyword_index+':'+word.text, entry_id)
 
     build_set(redis_instance, redis_key, all_words)
+
+# There are many things to improve in this function, focus on the number of results retrieved from complete function
+def search(user_input, redis_instance, redis_key, keyword_index="keyword:index"):
+    word_list = []
+    completed_list = []
+    segmented_entry = mmseg.Algorithm(user_input)
+    for word in segmented_entry:
+        word_list.append(word.text)
+    for word in word_list:
+        completed_list.append(
+            keyword_index + ":" + complete(redis_instance, redis_key, word, 1)[0]
+        )
+    completed_set = redis_instance.sinter(completed_list)
+    return completed_set
+
